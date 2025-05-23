@@ -11,46 +11,57 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 20px;
+      justify-content: flex-start;
       min-height: 100vh;
       margin: 0;
+      padding: 40px 20px;
     }
 
     h1 {
-      font-size: 26px;
+      font-size: 28px;
       color: #223355;
+      margin-bottom: 20px;
     }
 
     button {
-      margin-top: 20px;
       padding: 12px 24px;
-      font-size: 16px;
       background-color: #3366ff;
       color: white;
       border: none;
       border-radius: 30px;
+      font-size: 16px;
       cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #254eda;
+      transform: scale(1.05);
     }
 
     #webcam-container {
       margin-top: 25px;
+      border: 4px solid #cce0ff;
       border-radius: 12px;
       overflow: hidden;
-      border: 4px solid #d0e2ff;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     }
 
     #label-container {
-      margin-top: 20px;
-      font-size: 20px;
+      margin-top: 25px;
+      font-size: 22px;
       font-weight: bold;
       color: #333;
       text-align: center;
     }
 
     #feedback {
-      font-size: 20px;
-      color: #444;
       margin-top: 10px;
+      font-size: 24px;
+      font-weight: 600;
+      color: #444;
+      min-height: 30px;
+      transition: all 0.3s ease;
     }
 
     .animate-clap {
@@ -62,8 +73,8 @@
     }
 
     @keyframes spin {
-      from { transform: rotate(0); }
-      to { transform: rotate(360deg); }
+      0% { transform: rotate(0); }
+      100% { transform: rotate(360deg); }
     }
 
     @keyframes pulse {
@@ -76,20 +87,20 @@
 <body>
   <h1>‘R’ ‘L’ 발음 구별합니다</h1>
   <button onclick="init()">🎤 시작하기</button>
+
   <div id="webcam-container"></div>
-  <div id="label-container"></div>
+  <div id="label-container">분석 결과가 여기에 표시됩니다</div>
   <div id="feedback"></div>
 
   <!-- 소리 -->
   <audio id="clap-sound" src="https://www.soundjay.com/human/applause-8.mp3"></audio>
 
-  <!-- ✅ 필수 라이브러리 -->
+  <!-- 필수 스크립트 -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 
   <script>
     const URL = "https://teachablemachine.withgoogle.com/models/MtrbbW4Rg/";
-
     let model, webcam, labelContainer, maxPredictions;
 
     async function init() {
@@ -100,16 +111,12 @@
       maxPredictions = model.getTotalClasses();
 
       webcam = new tmImage.Webcam(200, 200, true);
-      await webcam.setup(); // 카메라 허용 요청
+      await webcam.setup();
       await webcam.play();
       document.getElementById("webcam-container").appendChild(webcam.canvas);
 
       labelContainer = document.getElementById("label-container");
-      labelContainer.innerHTML = "";
-      for (let i = 0; i < maxPredictions; i++) {
-        labelContainer.appendChild(document.createElement("div"));
-      }
-
+      labelContainer.innerHTML = "분석 중...";
       window.requestAnimationFrame(loop);
     }
 
@@ -123,32 +130,32 @@
       const prediction = await model.predict(webcam.canvas);
       const feedback = document.getElementById("feedback");
       const clapSound = document.getElementById("clap-sound");
+      let resultText = "";
+      let animClass = "";
+      let feedbackText = "";
 
       for (let i = 0; i < prediction.length; i++) {
-        const className = prediction[i].className.toLowerCase();
+        const label = prediction[i].className.toLowerCase();
         const prob = prediction[i].probability;
         const percent = (prob * 100).toFixed(1);
-        const labelDiv = labelContainer.childNodes[i];
 
-        let emoji = "";
-        let message = "";
-        let anim = "";
-
-        if (className === "l" && prob >= 0.5) {
-          emoji = " 👏";
-          message = "Good job!";
-          anim = "animate-clap";
+        if (label === "l" && prob >= 0.5) {
+          resultText = `L: ${percent}% 👏`;
+          feedbackText = "👏 Good job!";
+          animClass = "animate-clap";
           clapSound.play();
-        } else if (className === "r" && prob >= 0.5) {
-          emoji = " ❤️";
-          message = "Awesome job!";
-          anim = "animate-heart";
+          break;
+        } else if (label === "r" && prob >= 0.5) {
+          resultText = `R: ${percent}% ❤️`;
+          feedbackText = "❤️ Awesome job!";
+          animClass = "animate-heart";
+          break;
         }
-
-        labelDiv.className = anim;
-        labelDiv.innerText = `${className.toUpperCase()}: ${percent}%${emoji}`;
-        feedback.innerText = message;
       }
+
+      labelContainer.innerText = resultText || "분석 결과 없음";
+      labelContainer.className = animClass;
+      feedback.innerText = feedbackText;
     }
   </script>
 </body>
