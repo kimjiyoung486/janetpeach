@@ -11,10 +11,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: start;
+      padding: 40px 20px;
       min-height: 100vh;
       margin: 0;
-      padding: 30px 20px;
     }
 
     h1 {
@@ -23,14 +22,14 @@
     }
 
     button {
+      margin-top: 20px;
       padding: 12px 24px;
       font-size: 16px;
-      border: none;
       background-color: #3366ff;
       color: white;
+      border: none;
       border-radius: 30px;
       cursor: pointer;
-      margin-top: 10px;
     }
 
     #webcam-container {
@@ -76,17 +75,21 @@
 </head>
 <body>
   <h1>‘R’ ‘L’ 발음 구별합니다</h1>
-  <button onclick="init()">시작하기</button>
+  <button onclick="init()">🎤 시작하기</button>
   <div id="webcam-container"></div>
   <div id="label-container"></div>
   <div id="feedback"></div>
 
+  <!-- 소리 -->
   <audio id="clap-sound" src="https://www.soundjay.com/human/applause-8.mp3"></audio>
 
+  <!-- ✅ 필수 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
   <script>
     const URL = "https://teachablemachine.withgoogle.com/models/MtrbbW4Rg/";
+
     let model, webcam, labelContainer, maxPredictions;
 
     async function init() {
@@ -97,9 +100,8 @@
       maxPredictions = model.getTotalClasses();
 
       webcam = new tmImage.Webcam(200, 200, true);
-      await webcam.setup(); // ✅ 카메라 접근 요청
+      await webcam.setup(); // 카메라 허용 요청
       await webcam.play();
-
       document.getElementById("webcam-container").appendChild(webcam.canvas);
 
       labelContainer = document.getElementById("label-container");
@@ -127,6 +129,7 @@
         const prob = prediction[i].probability;
         const percent = (prob * 100).toFixed(1);
         const labelDiv = labelContainer.childNodes[i];
+
         let emoji = "";
         let message = "";
         let anim = "";
