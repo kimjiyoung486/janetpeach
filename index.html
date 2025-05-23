@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>‘R’ ‘L’ 발음 구별합니다</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>‘R’ ‘L’ 발음 구별 안내</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #eef2ff, #e0f7ff);
+      background: linear-gradient(to right, #e0f7ff, #f0f4ff);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -17,26 +17,33 @@
     }
 
     h1 {
-      font-size: 28px;
+      font-size: 26px;
       color: #223355;
       margin-bottom: 10px;
     }
 
-    .button-group {
-      display: flex;
-      gap: 10px;
+    .instruction {
+      background: #ffffffcc;
+      border-left: 5px solid #3366ff;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 15px;
+      color: #333;
       margin-bottom: 20px;
+      max-width: 320px;
+      line-height: 1.5;
     }
 
     button {
-      padding: 10px 20px;
+      padding: 12px 24px;
       background-color: #3366ff;
       color: white;
-      font-size: 15px;
+      font-size: 16px;
       border: none;
       border-radius: 30px;
       cursor: pointer;
-      transition: 0.2s ease;
+      transition: 0.3s ease;
+      margin-bottom: 20px;
     }
 
     button:hover {
@@ -45,106 +52,50 @@
     }
 
     #webcam-container {
-      margin-top: 10px;
-      border-radius: 12px;
       border: 4px solid #cce0ff;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-    }
-
-    #label-container {
-      margin-top: 20px;
-      font-size: 20px;
-      font-weight: bold;
-      color: #333;
-      text-align: center;
-    }
-
-    #feedback {
-      margin-top: 10px;
-      font-size: 22px;
-      font-weight: 600;
-      color: #444;
-      min-height: 30px;
-    }
-
-    .animate-feedback {
-      animation: pop 0.5s ease;
-    }
-
-    @keyframes pop {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.3); }
-      100% { transform: scale(1); }
-    }
-
-    /* 팝업 스타일 */
-    #popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 90%;
-      max-width: 350px;
-      transform: translate(-50%, -50%);
-      background: white;
       border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-      padding: 20px;
-      display: none;
-      z-index: 999;
-    }
-
-    #popup p {
-      font-size: 16px;
+      overflow: hidden;
       margin-bottom: 20px;
     }
 
-    #popup button {
-      background-color: #ff6666;
+    #label-container {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+      color: #333;
     }
 
-    #popup button:hover {
-      background-color: #e04b4b;
-    }
-
-    #overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.3);
-      display: none;
-      z-index: 998;
+    #feedback {
+      font-size: 22px;
+      color: #444;
+      font-weight: 600;
+      height: 32px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
   <h1>‘R’ ‘L’ 발음 구별합니다</h1>
-  <div class="button-group">
-    <button onclick="init()">🎤 시작하기</button>
-    <button onclick="showPopup()">❓ 안내</button>
+
+  <div class="instruction">
+    📘 학습 안내:<br>
+    발음 분석 결과가 화면에 표시됩니다.<br>
+    확률이 <b>40% 이상</b>이면 다음과 같이 칭찬 메시지가 나옵니다!<br><br>
+    - ❤️ Pronounce 'R': Awesome job!<br>
+    - 👏 Pronounce 'L': Good job!
   </div>
+
+  <button type="button" onclick="init()">🎤 Start</button>
 
   <div id="webcam-container"></div>
-  <div id="label-container">발음 결과가 여기에 표시됩니다</div>
+  <div id="label-container"></div>
   <div id="feedback"></div>
 
-  <!-- 팝업 도움말 -->
-  <div id="overlay"></div>
-  <div id="popup">
-    <p>
-      📊 화면에 나오는 숫자는 발음이 얼마나 정확한지를 보여줍니다.<br><br>
-      ✅ 40% 이상이면:<br>
-      ❤️ Pronounce 'R' → <b>Awesome job!</b><br>
-      👏 Pronounce 'L' → <b>Good job!</b><br><br>
-      수치가 높을수록 더 정확하게 발음한 거예요!
-    </p>
-    <button onclick="hidePopup()">닫기</button>
-  </div>
-
-  <!-- 필수 스크립트 -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
-
-  <script>
+  <!-- 모델 스크립트 -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script type="text/javascript">
     const URL = "https://teachablemachine.withgoogle.com/models/MtrbbW4Rg/";
     let model, webcam, labelContainer, maxPredictions;
 
@@ -155,25 +106,21 @@
       model = await tmImage.load(modelURL, metadataURL);
       maxPredictions = model.getTotalClasses();
 
-      webcam = new tmImage.Webcam(200, 200, true);
-      await webcam.setup();
+      webcam = new tmImage.Webcam(200, 200, true); // flip webcam
+      await webcam.setup(); // ask for camera access
       await webcam.play();
-      document.getElementById("webcam-container").appendChild(webcam.canvas);
+      window.requestAnimationFrame(loop);
 
+      document.getElementById("webcam-container").appendChild(webcam.canvas);
       labelContainer = document.getElementById("label-container");
       labelContainer.innerHTML = "";
-
       for (let i = 0; i < maxPredictions; i++) {
-        const div = document.createElement("div");
-        div.id = `label-${i}`;
-        labelContainer.appendChild(div);
+        labelContainer.appendChild(document.createElement("div"));
       }
-
-      window.requestAnimationFrame(loop);
     }
 
     async function loop() {
-      webcam.update();
+      webcam.update(); // update webcam frame
       await predict();
       window.requestAnimationFrame(loop);
     }
@@ -181,35 +128,23 @@
     async function predict() {
       const prediction = await model.predict(webcam.canvas);
       const feedback = document.getElementById("feedback");
-      feedback.innerText = "";
-      feedback.className = "";
+      feedback.innerText = ""; // clear each frame
 
-      for (let i = 0; i < prediction.length; i++) {
+      for (let i = 0; i < maxPredictions; i++) {
         const className = prediction[i].className;
-        const prob = prediction[i].probability;
-        const percent = (prob * 100).toFixed(1);
-        const labelDiv = document.getElementById(`label-${i}`);
-        labelDiv.innerText = `${className}: ${percent}%`;
+        const probability = prediction[i].probability;
+        const percent = (probability * 100).toFixed(2);
+        const result = `${className}: ${percent}%`;
 
-        if (className === "Pronounce 'R'" && prob >= 0.4) {
+        labelContainer.childNodes[i].innerHTML = result;
+
+        // 피드백 출력 조건
+        if (className === "Pronounce 'R'" && probability >= 0.4) {
           feedback.innerText = "❤️ Awesome job!";
-          feedback.className = "animate-feedback";
-        } else if (className === "Pronounce 'L'" && prob >= 0.4) {
+        } else if (className === "Pronounce 'L'" && probability >= 0.4) {
           feedback.innerText = "👏 Good job!";
-          feedback.className = "animate-feedback";
         }
       }
-    }
-
-    // 팝업 제어
-    function showPopup() {
-      document.getElementById("popup").style.display = "block";
-      document.getElementById("overlay").style.display = "block";
-    }
-
-    function hidePopup() {
-      document.getElementById("popup").style.display = "none";
-      document.getElementById("overlay").style.display = "none";
     }
   </script>
 </body>
