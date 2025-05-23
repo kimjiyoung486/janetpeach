@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>‘R’ ‘L’ 발음 구별합니다</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -25,8 +25,8 @@
     .instruction {
       font-size: 16px;
       color: #555;
-      margin-bottom: 20px;
       text-align: center;
+      margin-bottom: 20px;
     }
 
     button {
@@ -47,8 +47,9 @@
     }
 
     #webcam-container {
-      border: 4px solid #cce0ff;
+      margin-top: 10px;
       border-radius: 12px;
+      border: 4px solid #cce0ff;
       box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     }
 
@@ -56,70 +57,90 @@
       margin-top: 20px;
       font-size: 20px;
       font-weight: bold;
-      text-align: center;
       color: #333;
+      text-align: center;
     }
 
     #feedback {
       margin-top: 10px;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 600;
       color: #444;
       height: 30px;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+      margin-top: 20px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <h1>‘R’ ‘L’ 발음 구별합니다</h1>
   <div class="instruction">
-    📣 <strong>설명:</strong> 화면에 나온 발음 확률이<br>
-    <strong>40% 이상</strong>이면 아래와 같은 칭찬 메시지가 나와요!<br><br>
-    ✅ <b>Pronounce 'R'</b> → ❤️ <b>Awesome job!</b><br>
-    ✅ <b>Pronounce 'L'</b> → 👏 <b>Good job!</b>
+    📣 40% 이상이면 칭찬 메시지가 나와요!<br>
+    ❤️ Pronounce 'R' → Awesome job!<br>
+    👏 Pronounce 'L' → Good job!
   </div>
-
   <button onclick="init()">🎤 시작하기</button>
 
   <div id="webcam-container"></div>
   <div id="label-container">발음 결과가 여기에 표시됩니다</div>
   <div id="feedback"></div>
+  <div id="error-message" class="error"></div>
 
-  <!-- 필수 스크립트 -->
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
-
   <script>
     const URL = "https://teachablemachine.withgoogle.com/models/MtrbbW4Rg/";
     let model, webcam, labelContainer, maxPredictions;
 
     async function init() {
-      const modelURL = URL + "model.json";
-      const metadataURL = URL + "metadata.json";
+      document.getElementById("error-message").innerText = "";
+      try {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
 
-      model = await tmImage.load(modelURL, metadataURL);
-      maxPredictions = model.getTotalClasses();
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
 
-      webcam = new tmImage.Webcam(200, 200, true);
-      await webcam.setup();
-      await webcam.play();
-      document.getElementById("webcam-container").appendChild(webcam.canvas);
+        webcam = new tmImage.Webcam(200, 200, true);
 
-      labelContainer = document.getElementById("label-container");
-      labelContainer.innerHTML = "";
+        // 🚨 사용자에게 HTTPS 환경 안내
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+          throw new Error("❗ 웹캠은 HTTPS 환경에서만 작동합니다. 주소창이 'https://'로 시작하는지 확인하세요.");
+        }
 
-      for (let i = 0; i < maxPredictions; i++) {
-        const div = document.createElement("div");
-        div.id = `label-${i}`;
-        labelContainer.appendChild(div);
+        await webcam.setup(); // 카메라 허용 요청
+        await webcam.play();
+
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+        labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = "";
+        for (let i = 0; i < maxPredictions; i++) {
+          const div = document.createElement("div");
+          div.id = `label-${i}`;
+          labelContainer.appendChild(div);
+        }
+
+        window.requestAnimationFrame(loop);
+      } catch (err) {
+        document.getElementById("error-message").innerText =
+          "카메라 연결 실패: " + err.message;
+        console.error("카메라 오류:", err);
       }
-
-      window.requestAnimationFrame(loop);
     }
 
     async function loop() {
-      webcam.update();
-      await predict();
-      window.requestAnimationFrame(loop);
+      if (webcam) {
+        webcam.update();
+        await predict();
+        window.requestAnimationFrame(loop);
+      }
     }
 
     async function predict() {
@@ -133,7 +154,6 @@
         const percent = (prob * 100).toFixed(1);
         document.getElementById(`label-${i}`).innerText = `${label}: ${percent}%`;
 
-        // 🎯 피드백 조건
         if (label === "Pronounce 'R'" && prob >= 0.4) {
           feedback.innerText = "❤️ Awesome job!";
         } else if (label === "Pronounce 'L'" && prob >= 0.4) {
