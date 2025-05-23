@@ -1,47 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teachable Machine Image Classifier</title>
+  <meta charset="UTF-8">
+  <title>‘r’ ‘l’ 발음 정확히 하기</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #eef2f3, #cfd9df);
-      margin: 0;
-      padding: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: start;
       height: 100vh;
+      margin: 0;
+      padding-top: 30px;
     }
 
     h1 {
-      color: #333;
-      margin-bottom: 20px;
-      font-weight: bold;
+      color: #2c3e50;
     }
 
     button {
+      margin-top: 10px;
       padding: 12px 24px;
       background-color: #0077ff;
-      border: none;
       color: white;
       font-size: 16px;
-      border-radius: 50px;
+      border: none;
+      border-radius: 30px;
       cursor: pointer;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
       display: flex;
       align-items: center;
       gap: 10px;
-      transition: transform 0.2s, background-color 0.3s;
     }
 
     button:hover {
       background-color: #005bcc;
-      transform: scale(1.05);
     }
 
     #webcam-container {
@@ -49,54 +47,67 @@
       border: 4px solid #ccc;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     }
 
     #label-container {
       margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-      max-width: 300px;
-    }
-
-    #label-container div {
-      background-color: #ffffff;
-      border-radius: 12px;
-      padding: 14px 18px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      color: #222;
+      font-size: 20px;
       font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      animation: fadeIn 0.6s ease-in-out;
     }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .animate-clap {
+      animation: pulse 1s ease;
+    }
+
+    .animate-firework {
+      animation: spin 1s ease;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #feedback {
+      font-size: 24px;
+      margin-top: 10px;
+      color: #2c3e50;
+      height: 30px;
+    }
+
+    canvas {
+      max-width: 300px;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>🎥 AI Image Classifier</h1>
-  <button onclick="init()"><i class="fas fa-camera"></i> Start Camera</button>
+  <h1>‘r’ ‘l’ 발음 정확히 하기</h1>
+  <button onclick="init()"><i class="fas fa-microphone"></i> Start</button>
   <div id="webcam-container"></div>
   <div id="label-container"></div>
+  <div id="feedback"></div>
+  <canvas id="prob-chart"></canvas>
 
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <audio id="clap-sound" src="https://www.soundjay.com/human/applause-8.mp3"></audio>
+  <audio id="firework-sound" src="https://www.soundjay.com/explosion/explosion-01.mp3"></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
   <script>
     const URL = "https://teachablemachine.withgoogle.com/models/MtrbbW4Rg/";
-    let model, webcam, labelContainer, maxPredictions;
+    let model, webcam, labelContainer, maxPredictions, chart;
+    let clapSound = document.getElementById("clap-sound");
+    let fireworkSound = document.getElementById("firework-sound");
+    let feedback = document.getElementById("feedback");
+    let timer = 0;
+    let running = true;
 
     async function init() {
       const modelURL = URL + "model.json";
@@ -105,36 +116,89 @@
       model = await tmImage.load(modelURL, metadataURL);
       maxPredictions = model.getTotalClasses();
 
-      const flip = true;
-      webcam = new tmImage.Webcam(200, 200, flip);
+      webcam = new tmImage.Webcam(200, 200, true);
       await webcam.setup();
       await webcam.play();
-      window.requestAnimationFrame(loop);
-
       document.getElementById("webcam-container").appendChild(webcam.canvas);
-      labelContainer = document.getElementById("label-container");
-      labelContainer.innerHTML = ""; // clear old labels
 
-      for (let i = 0; i < maxPredictions; i++) {
-        const labelBox = document.createElement("div");
-        labelBox.innerHTML = "🔍 Loading...";
-        labelContainer.appendChild(labelBox);
-      }
+      labelContainer = document.getElementById("label-container");
+
+      const ctx = document.getElementById("prob-chart").getContext("2d");
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ["L", "R"],
+          datasets: [{
+            label: '확률 (%)',
+            backgroundColor: ['#4caf50', '#ff9800'],
+            data: [0, 0],
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          scales: {
+            x: { max: 100, beginAtZero: true },
+            y: { beginAtZero: true }
+          }
+        }
+      });
+
+      timer = 0;
+      running = true;
+      window.requestAnimationFrame(loop);
     }
 
     async function loop() {
+      if (!running) return;
+
       webcam.update();
       await predict();
-      window.requestAnimationFrame(loop);
+
+      timer += 1;
+      if (timer > 180) { // 약 3초 (60fps)
+        running = false;
+        feedback.innerText = "⏱ 측정 종료!";
+      } else {
+        window.requestAnimationFrame(loop);
+      }
     }
 
     async function predict() {
       const prediction = await model.predict(webcam.canvas);
-      for (let i = 0; i < maxPredictions; i++) {
-        const emoji = "🎯";
-        const classPrediction = `${emoji} ${prediction[i].className}: ${prediction[i].probability.toFixed(2)}`;
-        labelContainer.childNodes[i].innerHTML = classPrediction;
+      let lProb = 0;
+      let rProb = 0;
+
+      for (let i = 0; i < prediction.length; i++) {
+        const label = prediction[i].className.toLowerCase();
+        const prob = prediction[i].probability;
+
+        if (label === "l") lProb = prob;
+        if (label === "r") rProb = prob;
       }
+
+      chart.data.datasets[0].data = [lProb * 100, rProb * 100];
+      chart.update();
+
+      let message = "Try again";
+
+      if (lProb >= 0.7) {
+        fireworkSound.pause(); fireworkSound.currentTime = 0;
+        clapSound.play();
+        labelContainer.innerHTML = `L: ${(lProb * 100).toFixed(1)}% 👏`;
+        labelContainer.className = "animate-clap";
+        message = "👏 Good job!";
+      } else if (rProb >= 0.7) {
+        clapSound.pause(); clapSound.currentTime = 0;
+        fireworkSound.play();
+        labelContainer.innerHTML = `R: ${(rProb * 100).toFixed(1)}% 🎆`;
+        labelContainer.className = "animate-firework";
+        message = "🎆 Good job!";
+      } else {
+        labelContainer.innerHTML = `L: ${(lProb * 100).toFixed(1)}%, R: ${(rProb * 100).toFixed(1)}%`;
+        labelContainer.className = "";
+      }
+
+      feedback.innerText = message;
     }
   </script>
 </body>
