@@ -135,17 +135,17 @@
       let feedbackText = "";
 
       for (let i = 0; i < prediction.length; i++) {
-        const label = prediction[i].className.toLowerCase();
+        const label = prediction[i].className; // 대문자 그대로
         const prob = prediction[i].probability;
         const percent = (prob * 100).toFixed(1);
 
-        if (label === "l" && prob >= 0.5) {
+        if (label === "L" && prob >= 0.5) {
           resultText = `L: ${percent}% 👏`;
           feedbackText = "👏 Good job!";
           animClass = "animate-clap";
           clapSound.play();
           break;
-        } else if (label === "r" && prob >= 0.5) {
+        } else if (label === "R" && prob >= 0.5) {
           resultText = `R: ${percent}% ❤️`;
           feedbackText = "❤️ Awesome job!";
           animClass = "animate-heart";
