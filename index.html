@@ -47,7 +47,7 @@
 
     #label-container {
       margin-top: 20px;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: bold;
       color: #333;
       text-align: center;
@@ -55,10 +55,10 @@
 
     #feedback {
       margin-top: 10px;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 600;
       color: #444;
-      min-height: 30px;
+      height: 30px;
       transition: all 0.3s ease;
     }
 
@@ -115,27 +115,27 @@
     async function predict() {
       const prediction = await model.predict(webcam.canvas);
       const feedback = document.getElementById("feedback");
-      let resultText = "";
-      let feedbackText = "";
 
-      console.clear(); // 콘솔에 예측 확인
-      prediction.forEach(p => console.log(`${p.className}: ${p.probability.toFixed(2)}`));
+      // 항상 결과 표시
+      let displayResults = prediction.map(p =>
+        `${p.className}: ${(p.probability * 100).toFixed(1)}%`
+      ).join(' | ');
+      labelContainer.innerText = displayResults;
+
+      // 조건 만족 시 피드백 표시
+      let feedbackText = "";
 
       for (let i = 0; i < prediction.length; i++) {
         const label = prediction[i].className;
         const prob = prediction[i].probability;
-        const percent = (prob * 100).toFixed(1);
 
         if (label === "Pronounce 'L'" && prob >= 0.4) {
-          resultText = `L 발음 (${percent}%) 👏`;
           feedbackText = "👏 Good job!";
         } else if (label === "Pronounce 'R'" && prob >= 0.4) {
-          resultText = `R 발음 (${percent}%) ❤️`;
           feedbackText = "❤️ Awesome job!";
         }
       }
 
-      labelContainer.innerText = resultText || "분석 결과 없음";
       feedback.innerText = feedbackText;
       feedback.className = feedbackText ? "animate-feedback" : "";
     }
