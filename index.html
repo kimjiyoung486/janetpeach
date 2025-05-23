@@ -4,82 +4,54 @@
   <meta charset="UTF-8" />
   <title>‘R’ ‘L’ 발음 구별합니다</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #f0f4ff, #e0f7ff);
+      background: linear-gradient(to right, #eef2ff, #e0f7ff);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 20px;
+      justify-content: start;
       min-height: 100vh;
       margin: 0;
+      padding: 30px 20px;
     }
 
     h1 {
       font-size: 26px;
       color: #223355;
-      font-weight: 700;
     }
 
     button {
-      margin-top: 20px;
       padding: 12px 24px;
       font-size: 16px;
+      border: none;
       background-color: #3366ff;
       color: white;
-      border: none;
       border-radius: 30px;
       cursor: pointer;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-      transition: 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    button:hover {
-      background-color: #254eda;
-      transform: scale(1.05);
+      margin-top: 10px;
     }
 
     #webcam-container {
       margin-top: 25px;
       border-radius: 12px;
       overflow: hidden;
-      border: 4px solid #ddeeff;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      border: 4px solid #d0e2ff;
     }
 
-    .card {
-      margin-top: 25px;
-      background-color: white;
-      padding: 20px;
-      border-radius: 16px;
-      text-align: center;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      min-width: 260px;
-    }
-
-    .result-text {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #333;
-    }
-
-    .feedback {
-      font-size: 18px;
-      min-height: 24px;
-      color: #555;
-    }
-
-    .error-message {
-      color: red;
-      font-weight: bold;
+    #label-container {
       margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
       text-align: center;
+    }
+
+    #feedback {
+      font-size: 20px;
+      color: #444;
+      margin-top: 10px;
     }
 
     .animate-clap {
@@ -91,8 +63,8 @@
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      from { transform: rotate(0); }
+      to { transform: rotate(360deg); }
     }
 
     @keyframes pulse {
@@ -104,13 +76,10 @@
 </head>
 <body>
   <h1>‘R’ ‘L’ 발음 구별합니다</h1>
-  <button onclick="init()"><i class="fas fa-microphone"></i> 시작하기</button>
+  <button onclick="init()">시작하기</button>
   <div id="webcam-container"></div>
-  <div class="card">
-    <div id="result" class="result-text">발음 분석을 시작하세요</div>
-    <div id="feedback" class="feedback"></div>
-  </div>
-  <div id="error" class="error-message"></div>
+  <div id="label-container"></div>
+  <div id="feedback"></div>
 
   <audio id="clap-sound" src="https://www.soundjay.com/human/applause-8.mp3"></audio>
 
@@ -118,78 +87,65 @@
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
   <script>
     const URL = "https://teachablemachine.withgoogle.com/models/MtrbbW4Rg/";
-
-    let model, webcam, maxPredictions;
-    const resultDiv = document.getElementById("result");
-    const feedbackDiv = document.getElementById("feedback");
-    const errorDiv = document.getElementById("error");
-    const clapSound = document.getElementById("clap-sound");
+    let model, webcam, labelContainer, maxPredictions;
 
     async function init() {
-      resultDiv.innerText = "모델을 불러오는 중입니다...";
-      feedbackDiv.innerText = "";
-      errorDiv.innerText = "";
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
 
-      try {
-        if (location.protocol !== "https:" && location.hostname !== "localhost") {
-          throw new Error("⚠️ 이 페이지는 HTTPS(보안 연결)에서만 카메라를 사용할 수 있어요.\n주소창이 https:// 로 시작하는지 확인하세요.");
-        }
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
 
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
+      webcam = new tmImage.Webcam(200, 200, true);
+      await webcam.setup(); // ✅ 카메라 접근 요청
+      await webcam.play();
 
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
+      document.getElementById("webcam-container").appendChild(webcam.canvas);
 
-        webcam = new tmImage.Webcam(200, 200, true);
-        await webcam.setup();
-        await webcam.play();
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-
-        window.requestAnimationFrame(loop);
-      } catch (err) {
-        console.error(err);
-        errorDiv.innerText = "❌ 카메라 사용이 불가능합니다.\n" + err.message;
-        resultDiv.innerText = "카메라 연결 실패";
+      labelContainer = document.getElementById("label-container");
+      labelContainer.innerHTML = "";
+      for (let i = 0; i < maxPredictions; i++) {
+        labelContainer.appendChild(document.createElement("div"));
       }
+
+      window.requestAnimationFrame(loop);
     }
 
     async function loop() {
-      if (webcam) {
-        webcam.update();
-        await predict();
-        window.requestAnimationFrame(loop);
-      }
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
     }
 
     async function predict() {
       const prediction = await model.predict(webcam.canvas);
-      let display = "";
-      let message = "";
-      let animClass = "";
+      const feedback = document.getElementById("feedback");
+      const clapSound = document.getElementById("clap-sound");
 
       for (let i = 0; i < prediction.length; i++) {
-        const label = prediction[i].className.toLowerCase();
+        const className = prediction[i].className.toLowerCase();
         const prob = prediction[i].probability;
         const percent = (prob * 100).toFixed(1);
+        const labelDiv = labelContainer.childNodes[i];
+        let emoji = "";
+        let message = "";
+        let anim = "";
 
-        if (label === "l" && prob >= 0.5) {
-          display = `L: ${percent}% 👏`;
+        if (className === "l" && prob >= 0.5) {
+          emoji = " 👏";
           message = "Good job!";
-          animClass = "animate-clap";
+          anim = "animate-clap";
           clapSound.play();
-          break;
-        } else if (label === "r" && prob >= 0.5) {
-          display = `R: ${percent}% ❤️`;
+        } else if (className === "r" && prob >= 0.5) {
+          emoji = " ❤️";
           message = "Awesome job!";
-          animClass = "animate-heart";
-          break;
+          anim = "animate-heart";
         }
-      }
 
-      resultDiv.innerText = display || "발음을 감지하지 못했어요.";
-      resultDiv.className = "result-text " + animClass;
-      feedbackDiv.innerText = message;
+        labelDiv.className = anim;
+        labelDiv.innerText = `${className.toUpperCase()}: ${percent}%${emoji}`;
+        feedback.innerText = message;
+      }
     }
   </script>
 </body>
