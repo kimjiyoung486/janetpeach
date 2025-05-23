@@ -12,12 +12,12 @@
       flex-direction: column;
       align-items: center;
       padding: 40px 20px;
-      min-height: 100vh;
       margin: 0;
+      min-height: 100vh;
     }
 
     h1 {
-      font-size: 28px;
+      font-size: 26px;
       color: #223355;
       margin-bottom: 20px;
     }
@@ -26,9 +26,9 @@
       padding: 12px 24px;
       background-color: #3366ff;
       color: white;
+      font-size: 16px;
       border: none;
       border-radius: 30px;
-      font-size: 16px;
       cursor: pointer;
       transition: 0.2s ease;
     }
@@ -58,8 +58,7 @@
       font-size: 22px;
       font-weight: 600;
       color: #444;
-      height: 30px;
-      transition: all 0.3s ease;
+      min-height: 30px;
     }
 
     .animate-feedback {
@@ -78,12 +77,12 @@
   <button onclick="init()">🎤 시작하기</button>
 
   <div id="webcam-container"></div>
-  <div id="label-container">발음 결과가 여기에 표시됩니다</div>
+  <div id="label-container">분석 결과가 여기에 표시됩니다</div>
   <div id="feedback"></div>
 
   <!-- 필수 스크립트 -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
 
   <script>
     const URL = "https://teachablemachine.withgoogle.com/models/MtrbbW4Rg/";
@@ -102,7 +101,14 @@
       document.getElementById("webcam-container").appendChild(webcam.canvas);
 
       labelContainer = document.getElementById("label-container");
-      labelContainer.innerText = "분석 중...";
+      labelContainer.innerHTML = "";
+
+      for (let i = 0; i < maxPredictions; i++) {
+        const div = document.createElement("div");
+        div.id = `label-${i}`;
+        labelContainer.appendChild(div);
+      }
+
       window.requestAnimationFrame(loop);
     }
 
@@ -115,29 +121,25 @@
     async function predict() {
       const prediction = await model.predict(webcam.canvas);
       const feedback = document.getElementById("feedback");
-
-      // 항상 결과 표시
-      let displayResults = prediction.map(p =>
-        `${p.className}: ${(p.probability * 100).toFixed(1)}%`
-      ).join(' | ');
-      labelContainer.innerText = displayResults;
-
-      // 조건 만족 시 피드백 표시
-      let feedbackText = "";
+      feedback.innerText = "";
+      feedback.className = "";
 
       for (let i = 0; i < prediction.length; i++) {
-        const label = prediction[i].className;
+        const className = prediction[i].className;
         const prob = prediction[i].probability;
+        const percent = (prob * 100).toFixed(1);
+        const labelDiv = document.getElementById(`label-${i}`);
+        labelDiv.innerText = `${className}: ${percent}%`;
 
-        if (label === "Pronounce 'L'" && prob >= 0.4) {
-          feedbackText = "👏 Good job!";
-        } else if (label === "Pronounce 'R'" && prob >= 0.4) {
-          feedbackText = "❤️ Awesome job!";
+        // 이모지 + 피드백 조건
+        if (className === "Pronounce 'R'" && prob >= 0.4) {
+          feedback.innerText = "❤️ Awesome job!";
+          feedback.className = "animate-feedback";
+        } else if (className === "Pronounce 'L'" && prob >= 0.4) {
+          feedback.innerText = "👏 Good job!";
+          feedback.className = "animate-feedback";
         }
       }
-
-      feedback.innerText = feedbackText;
-      feedback.className = feedbackText ? "animate-feedback" : "";
     }
   </script>
 </body>
