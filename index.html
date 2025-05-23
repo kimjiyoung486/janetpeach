@@ -17,13 +17,16 @@
     }
 
     h1 {
-      <p style="font-size: 14px; color: #555;">
-  ※ 40% 이상이면 이모지와 함께 칭찬 메시지가 나옵니다!
-</p>
-
       font-size: 28px;
       color: #223355;
+      margin-bottom: 10px;
+    }
+
+    .instruction {
+      font-size: 16px;
+      color: #555;
       margin-bottom: 20px;
+      text-align: center;
     }
 
     button {
@@ -54,6 +57,7 @@
       font-size: 20px;
       font-weight: bold;
       text-align: center;
+      color: #333;
     }
 
     #feedback {
@@ -66,9 +70,13 @@
   </style>
 </head>
 <body>
-  <h1>‘R’ ‘L’ 발음 구별합니다</h1><p style="font-size: 14px; color: #555;">
-  ※ 40% 이상이면 이모지와 함께 칭찬 메시지가 나옵니다!
-</p>
+  <h1>‘R’ ‘L’ 발음 구별합니다</h1>
+  <div class="instruction">
+    📣 <strong>설명:</strong> 화면에 나온 발음 확률이<br>
+    <strong>40% 이상</strong>이면 아래와 같은 칭찬 메시지가 나와요!<br><br>
+    ✅ <b>Pronounce 'R'</b> → ❤️ <b>Awesome job!</b><br>
+    ✅ <b>Pronounce 'L'</b> → 👏 <b>Good job!</b>
+  </div>
 
   <button onclick="init()">🎤 시작하기</button>
 
@@ -98,6 +106,7 @@
 
       labelContainer = document.getElementById("label-container");
       labelContainer.innerHTML = "";
+
       for (let i = 0; i < maxPredictions; i++) {
         const div = document.createElement("div");
         div.id = `label-${i}`;
@@ -124,13 +133,10 @@
         const percent = (prob * 100).toFixed(1);
         document.getElementById(`label-${i}`).innerText = `${label}: ${percent}%`;
 
-        // 🎯 하트 ❤️ 이모지는 Pronounce 'R' 확률이 40% 이상일 때 나타납니다
+        // 🎯 피드백 조건
         if (label === "Pronounce 'R'" && prob >= 0.4) {
           feedback.innerText = "❤️ Awesome job!";
-        }
-
-        // 🎯 박수 👏 이모지는 Pronounce 'L' 확률이 40% 이상일 때 나타납니다
-        if (label === "Pronounce 'L'" && prob >= 0.4) {
+        } else if (label === "Pronounce 'L'" && prob >= 0.4) {
           feedback.innerText = "👏 Good job!";
         }
       }
