@@ -57,6 +57,27 @@
     button:hover {
       background-color: #b72c6c;
     }
+
+    .result {
+      display: none;
+      background: #fff7e6;
+      border: 2px dashed #ffbf69;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 30px;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .result h2 {
+      color: #ff9800;
+      margin-bottom: 10px;
+    }
+
+    .result p {
+      font-size: 16px;
+      color: #555;
+    }
   </style>
 </head>
 <body>
@@ -133,5 +154,32 @@
 
     <button type="submit">제출하기</button>
   </form>
+
+  <div class="result" id="result">
+    <h2>🎉 제출 완료! 🎉</h2>
+    <p>여러분의 소중한 답변이 <strong>koreansjane@naver.com</strong>으로 전송되었어요!<br>Janet 강사가 더욱 알맞은 영어 수업을 준비할 수 있게 되었답니다. 💌</p>
+    <button onclick="resetQuiz()">🔁 다시 풀기</button>
+  </div>
+
+  <script>
+    document.getElementById("quizForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      let body = "English Motivation Quiz Answers:\n\n";
+      formData.forEach((value, key) => {
+        body += `${key}: ${value}\n`;
+      });
+      const mailTo = `mailto:koreansjane@naver.com?subject=English%20Motivation%20Quiz&body=${encodeURIComponent(body)}`;
+      window.location.href = mailTo;
+      document.getElementById("quizForm").style.display = "none";
+      document.getElementById("result").style.display = "block";
+    });
+
+    function resetQuiz() {
+      document.getElementById("quizForm").reset();
+      document.getElementById("quizForm").style.display = "block";
+      document.getElementById("result").style.display = "none";
+    }
+  </script>
 </body>
 </html>
