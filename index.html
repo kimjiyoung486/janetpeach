@@ -1,101 +1,170 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
+  <title>‘R’ ‘L’ 발음 구별하기</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>English Motivation Quiz</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f0f8ff;
-      text-align: center;
-      padding: 30px;
+      background: linear-gradient(to right, #e0f7ff, #f2f5fc);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+      min-height: 100vh;
+      margin: 0;
     }
+
     h1 {
-      color: #3366cc;
+      font-size: 26px;
+      margin-bottom: 12px;
+      color: #223355;
     }
-    .question {
+
+    .instruction {
+      font-size: 15px;
+      color: #444;
+      text-align: center;
+      background: #ffffffcc;
+      padding: 14px;
+      border-radius: 8px;
+      max-width: 320px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      border-left: 5px solid #3366ff;
+    }
+
+    button {
+      padding: 12px 24px;
+      background-color: #3366ff;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.3s ease;
       margin-bottom: 20px;
     }
-    textarea {
-      width: 90%;
-      max-width: 500px;
-      height: 60px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      padding: 10px;
-      resize: vertical;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
+
     button:hover {
-      background-color: #45a049;
+      background-color: #254eda;
+      transform: scale(1.05);
     }
-    .result {
-      display: none;
-      background: #fffbe7;
-      border: 2px dashed #ffc107;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 30px;
+
+    #webcam-container {
+      border: 4px solid #cce0ff;
+      border-radius: 12px;
+      margin-bottom: 20px;
     }
-    .result h2 {
-      color: #ff9800;
+
+    #label-container {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    #feedback {
+      font-size: 22px;
+      color: #444;
+      font-weight: 600;
+      height: 32px;
+      margin-bottom: 20px;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+      margin-top: 20px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>🌟 English Motivation Survey 🌟</h1>
-  <form id="quizForm">
-    <div class="question">1. Why are you learning English now?<br><textarea name="q1"></textarea></div>
-    <div class="question">2. What are your short-term and long-term English goals?<br><textarea name="q2"></textarea></div>
-    <div class="question">3. Which English skill do you want to improve the most?<br><textarea name="q3"></textarea></div>
-    <div class="question">4. Have you studied English before? How and how long?<br><textarea name="q4"></textarea></div>
-    <div class="question">5. What topics or situations do you want to talk about in English?<br><textarea name="q5"></textarea></div>
-    <div class="question">6. Do you feel nervous or shy when speaking English? Why?<br><textarea name="q6"></textarea></div>
-    <div class="question">7. What kind of activities do you enjoy when learning English?<br><textarea name="q7"></textarea></div>
-    <div class="question">8. Do you use English outside of class? How?<br><textarea name="q8"></textarea></div>
-    <div class="question">9. What is the hardest part of learning English for you?<br><textarea name="q9"></textarea></div>
-    <div class="question">10. What would make English lessons more fun and helpful for you?<br><textarea name="q10"></textarea></div>
-    <button type="submit">Submit Answers</button>
-  </form>
-
-  <div class="result" id="result">
-    <h2>🎉 Great job, English star! 🎉</h2>
-    <p>Thank you for sharing your thoughts. Janet will use your answers to make your English learning more fun and effective!</p>
-    <button onclick="resetQuiz()">🔁 Take the quiz again</button>
+  <h1>‘R’ ‘L’ 발음 구별하기</h1>
+  <div class="instruction">
+    📘 발음을 판별하고 정확도를 확인해 보세요.<br>
+    확률이 <b>40%</b> 이상일 경우:<br>
+    ❤️ Pronounce 'R' → Awesome job!<br>
+    👏 Pronounce 'L' → Good job!
   </div>
 
+  <button onclick="init()">🎤 카메라로 시작하기</button>
+
+  <div id="webcam-container"></div>
+  <div id="label-container">예측 결과가 여기에 표시됩니다</div>
+  <div id="feedback"></div>
+  <div id="error-message" class="error"></div>
+
+  <!-- Teachable Machine Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
   <script>
-    document.getElementById("quizForm").addEventListener("submit", function (e) {
-      e.preventDefault();
+    const URL = "https://teachablemachine.withgoogle.com/models/MtrbbW4Rg/";
+    let model, webcam, labelContainer, maxPredictions;
 
-      const formData = new FormData(e.target);
-      let body = "English Motivation Quiz Answers:\n\n";
-      formData.forEach((value, key) => {
-        body += `${key}: ${value}\n\n`;
-      });
+    async function init() {
+      const errorMsg = document.getElementById("error-message");
+      errorMsg.innerText = "";
 
-      // mailto link - opens default mail app
-      const mailTo = `mailto:koreansjane@naver.com?subject=English%20Motivation%20Quiz&body=${encodeURIComponent(body)}`;
-      window.location.href = mailTo;
+      try {
+        // HTTPS 필수
+        if (location.protocol !== "https:" && location.hostname !== "localhost") {
+          throw new Error("⚠️ 이 페이지는 HTTPS(보안 연결)에서만 카메라 사용이 가능합니다.");
+        }
 
-      // Show result screen
-      document.getElementById("quizForm").style.display = "none";
-      document.getElementById("result").style.display = "block";
-    });
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
 
-    function resetQuiz() {
-      document.getElementById("quizForm").reset();
-      document.getElementById("quizForm").style.display = "block";
-      document.getElementById("result").style.display = "none";
+        webcam = new tmImage.Webcam(200, 200, true); // flip = true
+        await webcam.setup(); // 카메라 요청
+        await webcam.play();
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+        labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = "";
+        for (let i = 0; i < maxPredictions; i++) {
+          labelContainer.appendChild(document.createElement("div"));
+        }
+
+        window.requestAnimationFrame(loop);
+      } catch (error) {
+        errorMsg.innerText = "❌ 카메라 연결에 실패했습니다: " + error.message;
+        console.error(error);
+      }
+    }
+
+    async function loop() {
+      if (webcam) {
+        webcam.update();
+        await predict();
+        window.requestAnimationFrame(loop);
+      }
+    }
+
+    async function predict() {
+      const prediction = await model.predict(webcam.canvas);
+      const feedback = document.getElementById("feedback");
+      feedback.innerText = "";
+
+      for (let i = 0; i < prediction.length; i++) {
+        const className = prediction[i].className;
+        const prob = prediction[i].probability;
+        const percent = (prob * 100).toFixed(1);
+
+        document.getElementById("label-container").childNodes[i].innerText = `${className}: ${percent}%`;
+
+        if (className === "Pronounce 'R'" && prob >= 0.4) {
+          feedback.innerText = "❤️ Awesome job!";
+        } else if (className === "Pronounce 'L'" && prob >= 0.4) {
+          feedback.innerText = "👏 Good job!";
+        }
+      }
     }
   </script>
 </body>
