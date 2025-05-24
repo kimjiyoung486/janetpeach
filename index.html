@@ -2,168 +2,187 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>‘R’ ‘L’ 발음 구별하기</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>‘r’ ‘l’ 발음 정확히 하기</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #e0f7ff, #f2f5fc);
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(to right, #eef2f3, #cfd9df);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 30px 20px;
+      justify-content: start;
       min-height: 100vh;
       margin: 0;
+      padding-top: 30px;
     }
 
     h1 {
-      font-size: 26px;
-      margin-bottom: 12px;
-      color: #223355;
-    }
-
-    .instruction {
-      font-size: 15px;
-      color: #444;
-      text-align: center;
-      background: #ffffffcc;
-      padding: 14px;
-      border-radius: 8px;
-      max-width: 320px;
-      line-height: 1.5;
+      color: #2c3e50;
       margin-bottom: 20px;
-      border-left: 5px solid #3366ff;
     }
 
     button {
       padding: 12px 24px;
-      background-color: #3366ff;
+      background-color: #0077ff;
       color: white;
       font-size: 16px;
       border: none;
       border-radius: 30px;
       cursor: pointer;
-      transition: 0.3s ease;
-      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.2s ease;
     }
 
     button:hover {
-      background-color: #254eda;
       transform: scale(1.05);
+      background-color: #005bcc;
     }
 
     #webcam-container {
-      border: 4px solid #cce0ff;
-      border-radius: 12px;
-      margin-bottom: 20px;
+      margin-top: 20px;
+      border: 4px solid #ccc;
+      border-radius: 10px;
+      overflow: hidden;
     }
 
     #label-container {
-      font-size: 20px;
-      font-weight: bold;
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    #label-container div {
+      background: #fff;
+      padding: 14px 18px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       text-align: center;
-      margin-bottom: 10px;
-      color: #333;
+      font-size: 18px;
+      font-weight: bold;
+      animation: fadeIn 0.6s ease-in-out;
     }
 
     #feedback {
+      margin-top: 20px;
       font-size: 22px;
-      color: #444;
-      font-weight: 600;
-      height: 32px;
-      margin-bottom: 20px;
+      font-weight: bold;
+      color: #333;
+      min-height: 28px;
     }
 
-    .error {
-      color: red;
-      font-weight: bold;
-      margin-top: 20px;
-      text-align: center;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-clap {
+      animation: spin 1s ease;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .animate-heart {
+      animation: pulse 1s ease;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
     }
   </style>
 </head>
 <body>
-  <h1>‘R’ ‘L’ 발음 구별하기</h1>
-  <div class="instruction">
-    📘 발음을 판별하고 정확도를 확인해 보세요.<br>
-    확률이 <b>40%</b> 이상일 경우:<br>
-    ❤️ Pronounce 'R' → Awesome job!<br>
-    👏 Pronounce 'L' → Good job!
-  </div>
-
-  <button onclick="init()">🎤 카메라로 시작하기</button>
-
+  <h1>‘r’ ‘l’ 발음 정확히 하기</h1>
+  <button onclick="init()"><i class="fas fa-microphone"></i> Start</button>
   <div id="webcam-container"></div>
-  <div id="label-container">예측 결과가 여기에 표시됩니다</div>
+  <div id="label-container"></div>
   <div id="feedback"></div>
-  <div id="error-message" class="error"></div>
 
-  <!-- Teachable Machine Scripts -->
+  <!-- 소리 추가 -->
+  <audio id="clap-sound" src="https://www.soundjay.com/human/applause-8.mp3"></audio>
+
+  <!-- Teachable Machine scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-
   <script>
     const URL = "https://teachablemachine.withgoogle.com/models/MtrbbW4Rg/";
+
     let model, webcam, labelContainer, maxPredictions;
+    const clapSound = document.getElementById("clap-sound");
+    const feedback = document.getElementById("feedback");
 
     async function init() {
-      const errorMsg = document.getElementById("error-message");
-      errorMsg.innerText = "";
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
 
-      try {
-        // HTTPS 필수
-        if (location.protocol !== "https:" && location.hostname !== "localhost") {
-          throw new Error("⚠️ 이 페이지는 HTTPS(보안 연결)에서만 카메라 사용이 가능합니다.");
-        }
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
 
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
+      webcam = new tmImage.Webcam(200, 200, true);
+      await webcam.setup();
+      await webcam.play();
+      window.requestAnimationFrame(loop);
 
-        webcam = new tmImage.Webcam(200, 200, true); // flip = true
-        await webcam.setup(); // 카메라 요청
-        await webcam.play();
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
+      document.getElementById("webcam-container").appendChild(webcam.canvas);
+      labelContainer = document.getElementById("label-container");
+      labelContainer.innerHTML = "";
 
-        labelContainer = document.getElementById("label-container");
-        labelContainer.innerHTML = "";
-        for (let i = 0; i < maxPredictions; i++) {
-          labelContainer.appendChild(document.createElement("div"));
-        }
-
-        window.requestAnimationFrame(loop);
-      } catch (error) {
-        errorMsg.innerText = "❌ 카메라 연결에 실패했습니다: " + error.message;
-        console.error(error);
+      for (let i = 0; i < maxPredictions; i++) {
+        const div = document.createElement("div");
+        div.id = `label-${i}`;
+        labelContainer.appendChild(div);
       }
     }
 
     async function loop() {
-      if (webcam) {
-        webcam.update();
-        await predict();
-        window.requestAnimationFrame(loop);
-      }
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
     }
 
     async function predict() {
       const prediction = await model.predict(webcam.canvas);
-      const feedback = document.getElementById("feedback");
       feedback.innerText = "";
+      let hasFeedback = false;
 
-      for (let i = 0; i < prediction.length; i++) {
-        const className = prediction[i].className;
+      for (let i = 0; i < maxPredictions; i++) {
         const prob = prediction[i].probability;
-        const percent = (prob * 100).toFixed(1);
+        const label = prediction[i].className.toLowerCase();
+        const div = document.getElementById(`label-${i}`);
+        let emoji = "";
+        let animationClass = "";
 
-        document.getElementById("label-container").childNodes[i].innerText = `${className}: ${percent}%`;
-
-        if (className === "Pronounce 'R'" && prob >= 0.4) {
-          feedback.innerText = "❤️ Awesome job!";
-        } else if (className === "Pronounce 'L'" && prob >= 0.4) {
-          feedback.innerText = "👏 Good job!";
+        if (label === "r" && prob >= 0.5) {
+          emoji = " 👏";
+          animationClass = "animate-clap";
+          feedback.innerText = "Good job!";
+          clapSound.play();
+          hasFeedback = true;
+        } else if (label === "l" && prob >= 0.5) {
+          emoji = " ❤️";
+          animationClass = "animate-heart";
+          feedback.innerText = "Awesome job!";
+          hasFeedback = true;
         }
+
+        div.className = animationClass;
+        div.innerHTML = `${label.toUpperCase()}: ${(prob * 100).toFixed(1)}%${emoji}`;
+      }
+
+      if (!hasFeedback) {
+        feedback.innerText = "";
       }
     }
   </script>
