@@ -16,12 +16,16 @@
     }
     h1 {
       color: #d63384;
+      font-size: 32px;
+      font-weight: bold;
     }
     .question {
       display: none;
       margin-bottom: 20px;
       max-width: 600px;
       text-align: left;
+      font-size: 20px;
+      font-weight: bold;
     }
     .question.active {
       display: block;
@@ -29,11 +33,15 @@
     label {
       display: block;
       margin: 5px 0;
+      font-size: 18px;
+      font-weight: normal;
     }
     button {
-      padding: 10px 20px;
+      padding: 12px 24px;
       background-color: #d63384;
       color: white;
+      font-size: 18px;
+      font-weight: bold;
       border: none;
       border-radius: 30px;
       cursor: pointer;
@@ -48,13 +56,14 @@
       padding: 20px;
       border-radius: 12px;
       max-width: 500px;
+      font-size: 18px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h1>🎀 영어 학습 심리 테스트 🎀</h1>
   <form id="quizForm">
-    <!-- 질문 1~10 -->
     <div class="question active" id="q1">
       1. 영어 실수에 민감한 편이다.<br>
       <label><input type="radio" name="q1" value="1"> 전혀 그렇지 않다</label>
