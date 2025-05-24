@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Janet's English Learning Motivation Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Gowun Dodum', sans-serif;
+      background: linear-gradient(to right, #ffe0f7, #e0f7ff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 12px;
+      color: #d63384;
+    }
+
+    .question {
+      margin-bottom: 15px;
+      text-align: left;
+      max-width: 500px;
+    }
+
+    label {
+      display: block;
+      margin: 5px 0;
+    }
+
+    textarea, select {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 8px;
+      margin-top: 5px;
+      font-family: 'Gowun Dodum', sans-serif;
+    }
+
+    button {
+      padding: 10px 24px;
+      background-color: #d63384;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      margin: 20px 10px;
+    }
+
+    button:hover {
+      background-color: #b72c6c;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌟 Janet's English Learning Motivation Quiz 🌟</h1>
+
+  <form id="quizForm">
+    <div class="question">
+      <b>1. Why are you learning English now?<br>지금 영어를 배우는 이유는 무엇인가요?</b>
+      <label><input type="radio" name="q1" value="For school or test"> For school or test / 학교나 시험 준비</label>
+      <label><input type="radio" name="q1" value="For travel or communication"> For travel or communication / 여행이나 대화</label>
+      <label><input type="radio" name="q1" value="Just for fun"> Just for fun / 재미로</label>
+    </div>
+
+    <div class="question">
+      <b>2. What are your English goals?<br>당신의 영어 목표는 무엇인가요?</b>
+      <label><input type="radio" name="q2" value="Fluency"> Fluency / 유창하게 말하기</label>
+      <label><input type="radio" name="q2" value="Grammar accuracy"> Grammar accuracy / 문법 정확성</label>
+      <label><input type="radio" name="q2" value="Confidence"> Confidence / 자신감 가지기</label>
+    </div>
+
+    <div class="question">
+      <b>3. Which skill is hardest for you?<br>가장 어려운 영어 영역은?</b>
+      <label><input type="radio" name="q3" value="Speaking"> Speaking / 말하기</label>
+      <label><input type="radio" name="q3" value="Listening"> Listening / 듣기</label>
+      <label><input type="radio" name="q3" value="Writing"> Writing / 쓰기</label>
+    </div>
+
+    <div class="question">
+      <b>4. Do you feel nervous when speaking English?<br>영어로 말할 때 긴장되시나요?</b>
+      <label><input type="radio" name="q4" value="Yes, very much"> Yes, very much / 네, 매우 그래요</label>
+      <label><input type="radio" name="q4" value="A little"> A little / 약간 그래요</label>
+      <label><input type="radio" name="q4" value="Not at all"> Not at all / 전혀 아니에요</label>
+    </div>
+
+    <div class="question">
+      <b>5. What topics do you enjoy?<br>어떤 주제로 영어를 배우고 싶나요?</b>
+      <label><input type="radio" name="q5" value="Daily life"> Daily life / 일상 생활</label>
+      <label><input type="radio" name="q5" value="Travel & food"> Travel & food / 여행과 음식</label>
+      <label><input type="radio" name="q5" value="Movies & music"> Movies & music / 영화와 음악</label>
+    </div>
+
+    <div class="question">
+      <b>6. What do you want to do better?<br>더 잘하고 싶은 활동은?</b>
+      <label><input type="radio" name="q6" value="Conversation"> Conversation / 대화하기</label>
+      <label><input type="radio" name="q6" value="Presentation"> Presentation / 발표하기</label>
+      <label><input type="radio" name="q6" value="Messaging"> Messaging / 글쓰기</label>
+    </div>
+
+    <div class="question">
+      <b>7. What kind of activities do you prefer?<br>어떤 수업 활동을 좋아하나요?</b>
+      <label><input type="radio" name="q7" value="Games"> Games / 게임</label>
+      <label><input type="radio" name="q7" value="Videos"> Videos / 영상</label>
+      <label><input type="radio" name="q7" value="Role-plays"> Role-plays / 역할극</label>
+    </div>
+
+    <div class="question">
+      <b>8. Do you use English outside class?<br>수업 외에 영어를 사용하나요?</b>
+      <label><input type="radio" name="q8" value="Yes, often"> Yes, often / 자주 해요</label>
+      <label><input type="radio" name="q8" value="Sometimes"> Sometimes / 가끔 해요</label>
+      <label><input type="radio" name="q8" value="Rarely"> Rarely / 거의 안 해요</label>
+    </div>
+
+    <div class="question">
+      <b>9. What makes English difficult?<br>영어가 어려운 이유는 무엇인가요?</b>
+      <label><input type="radio" name="q9" value="Too many rules"> Too many rules / 규칙이 너무 많아요</label>
+      <label><input type="radio" name="q9" value="Lack of practice"> Lack of practice / 연습 부족</label>
+      <label><input type="radio" name="q9" value="No motivation"> No motivation / 동기 부족</label>
+    </div>
+
+    <div class="question">
+      <b>10. Any message for Janet?<br>Janet 강사에게 하고 싶은 말이 있다면?</b><br>
+      <textarea name="q10" placeholder="Write your message here..."></textarea>
+    </div>
+
+    <button type="submit">제출하기</button>
+  </form>
+</body>
+</html>
