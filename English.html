@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎀 영어 학습 심리 테스트</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Gowun Dodum', sans-serif;
+      background: linear-gradient(to right, #e0f7ff, #ffe0f7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+    }
+    h1 {
+      color: #d63384;
+    }
+    .question {
+      display: none;
+      margin-bottom: 20px;
+      max-width: 600px;
+      text-align: left;
+    }
+    .question.active {
+      display: block;
+    }
+    label {
+      display: block;
+      margin: 5px 0;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #d63384;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .result {
+      display: none;
+      text-align: center;
+      margin-top: 30px;
+      background-color: #fffaf0;
+      border: 2px dashed #ffc107;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎀 영어 학습 심리 테스트 🎀</h1>
+  <form id="quizForm">
+    <!-- 질문 1~10 -->
+    <div class="question active" id="q1">
+      1. 영어 실수에 민감한 편이다.<br>
+      <label><input type="radio" name="q1" value="1"> 전혀 그렇지 않다</label>
+      <label><input type="radio" name="q1" value="2"> 그렇지 않은 편이다</label>
+      <label><input type="radio" name="q1" value="3"> 그런 편이다</label>
+      <label><input type="radio" name="q1" value="4"> 매우 그렇다</label>
+      <button type="button" onclick="nextQuestion(1)">다음</button>
+    </div>
+    <div class="question" id="q2">
+      2. 모르는 표현도 끝까지 이해하려 노력한다.<br>
+      <label><input type="radio" name="q2" value="1"> 전혀 그렇지 않다</label>
+      <label><input type="radio" name="q2" value="2"> 그렇지 않은 편이다</label>
+      <label><input type="radio" name="q2" value="3"> 그런 편이다</label>
+      <label><input type="radio" name="q2" value="4"> 매우 그렇다</label>
+      <button type="button" onclick="nextQuestion(2)">다음</button>
+    </div>
+    <div class="question" id="q3">
+      3. 영어로 말할 때 자신감이 있다.<br>
+      <label><input type="radio" name="q3" value="1"> 전혀 그렇지 않다</label>
+      <label><input type="radio" name="q3" value="2"> 그렇지 않은 편이다</label>
+      <label><input type="radio" name="q3" value="3"> 그런 편이다</label>
+      <label><input type="radio" name="q3" value="4"> 매우 그렇다</label>
+      <button type="button" onclick="nextQuestion(3)">다음</button>
+    </div>
+    <div class="question" id="q4">
+      4. 함께 공부하는 환경이 좋다.<br>
+      <label><input type="radio" name="q4" value="1"> 전혀 그렇지 않다</label>
+      <label><input type="radio" name="q4" value="2"> 그렇지 않은 편이다</label>
+      <label><input type="radio" name="q4" value="3"> 그런 편이다</label>
+      <label><input type="radio" name="q4" value="4"> 매우 그렇다</label>
+      <button type="button" onclick="nextQuestion(4)">다음</button>
+    </div>
+    <div class="question" id="q5">
+      5. 영어로 내 감정을 표현하는 것이 즐겁다.<br>
+      <label><input type="radio" name="q5" value="1"> 전혀 그렇지 않다</label>
+      <label><input type="radio" name="q5" value="2"> 그렇지 않은 편이다</label>
+      <label><input type="radio" name="q5" value="3"> 그런 편이다</label>
+      <label><input type="radio" name="q5" value="4"> 매우 그렇다</label>
+      <button type="button" onclick="nextQuestion(5)">다음</button>
+    </div>
+    <div class="question" id="q6">
+      6. 영어 말할 기회를 실수 때문에 피한 적이 있다.<br>
+      <label><input type="radio" name="q6" value="1"> 전혀 그렇지 않다</label>
+      <label><input type="radio" name="q6" value="2"> 그렇지 않은 편이다</label>
+      <label><input type="radio" name="q6" value="3"> 그런 편이다</label>
+      <label><input type="radio" name="q6" value="4"> 매우 그렇다</label>
+      <button type="button" onclick="nextQuestion(6)">다음</button>
+    </div>
+    <div class="question" id="q7">
+      7. 게임이나 노래 등으로 배울 때 더 잘 기억된다.<br>
+      <label><input type="radio" name="q7" value="1"> 전혀 그렇지 않다</label>
+      <label><input type="radio" name="q7" value="2"> 그렇지 않은 편이다</label>
+      <label><input type="radio" name="q7" value="3"> 그런 편이다</label>
+      <label><input type="radio" name="q7" value="4"> 매우 그렇다</label>
+      <button type="button" onclick="nextQuestion(7)">다음</button>
+    </div>
+    <div class="question" id="q8">
+      8. 문법보다는 실용 표현이 좋다.<br>
+      <label><input type="radio" name="q8" value="1"> 전혀 그렇지 않다</label>
+      <label><input type="radio" name="q8" value="2"> 그렇지 않은 편이다</label>
+      <label><input type="radio" name="q8" value="3"> 그런 편이다</label>
+      <label><input type="radio" name="q8" value="4"> 매우 그렇다</label>
+      <button type="button" onclick="nextQuestion(8)">다음</button>
+    </div>
+    <div class="question" id="q9">
+      9. 공부 계획을 스스로 잘 지킨다.<br>
+      <label><input type="radio" name="q9" value="1"> 전혀 그렇지 않다</label>
+      <label><input type="radio" name="q9" value="2"> 그렇지 않은 편이다</label>
+      <label><input type="radio" name="q9" value="3"> 그런 편이다</label>
+      <label><input type="radio" name="q9" value="4"> 매우 그렇다</label>
+      <button type="button" onclick="nextQuestion(9)">다음</button>
+    </div>
+    <div class="question" id="q10">
+      10. 성장하는 느낌이 들면 더 의욕이 생긴다.<br>
+      <label><input type="radio" name="q10" value="1"> 전혀 그렇지 않다</label>
+      <label><input type="radio" name="q10" value="2"> 그렇지 않은 편이다</label>
+      <label><input type="radio" name="q10" value="3"> 그런 편이다</label>
+      <label><input type="radio" name="q10" value="4"> 매우 그렇다</label>
+      <button type="submit">제출하기</button>
+    </div>
+  </form>
+
+  <div class="result" id="result">
+    <h2>🎉 테스트 완료! 🎉</h2>
+    <p id="scoreMessage"></p>
+    <p>📧 결과는 <strong>koreansjane@naver.com</strong>으로 자동 전송할 수 있어요!</p>
+    <button onclick="resetQuiz()">🔁 다시 풀기</button>
+  </div>
+
+  <script>
+    function nextQuestion(current) {
+      const answer = document.querySelector(`input[name=q${current}]:checked`);
+      if (!answer) return alert("답변을 선택해주세요!");
+      document.getElementById(`q${current}`).classList.remove("active");
+      document.getElementById(`q${current + 1}`).classList.add("active");
+    }
+
+    document.getElementById("quizForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      let total = 0;
+      for (let i = 1; i <= 10; i++) {
+        const answer = document.querySelector(`input[name=q${i}]:checked`);
+        if (!answer) return alert(`${i}번 문항에 응답해주세요!`);
+        total += parseInt(answer.value);
+      }
+
+      let message = "";
+      if (total <= 20) {
+        message = "감정에 민감한 편이에요. 부드러운 환경에서 안정감을 느끼며 배워요!";
+      } else if (total <= 30) {
+        message = "학습에 꾸준함이 있어요! 실용 중심 활동과 적절한 피드백이 효과적이에요.";
+      } else {
+        message = "자기주도적이고 도전적인 스타일이에요! 프로젝트와 토론 수업에 잘 어울려요.";
+      }
+
+      document.getElementById("scoreMessage").innerText = message;
+      document.getElementById("quizForm").style.display = "none";
+      document.getElementById("result").style.display = "block";
+
+      const mailBody = `심리 테스트 총 점수: ${total}\n\n${message}`;
+      const mailTo = `mailto:koreansjane@naver.com?subject=심리테스트 결과&body=${encodeURIComponent(mailBody)}`;
+      window.location.href = mailTo;
+    });
+
+    function resetQuiz() {
+      document.getElementById("quizForm").reset();
+      document.querySelectorAll('.question').forEach(q => q.classList.remove("active"));
+      document.getElementById("q1").classList.add("active");
+      document.getElementById("quizForm").style.display = "block";
+      document.getElementById("result").style.display = "none";
+    }
+  </script>
+</body>
+</html>
